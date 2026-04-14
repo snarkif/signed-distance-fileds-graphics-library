@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::io::{};
 use std::thread;
 use std::time::Duration;
-
+use minifb::{Window, WindowOptions};
 
 const ROWS: usize = 64;
 const COLUMNS: usize = 128;
@@ -76,40 +76,22 @@ fn pack_bits_to_bytes(grid: &[bool]) -> Vec<u8> {
 
 use std::io::{self, Write};
 
-fn printArr(arr: &[bool]) {
-    for row in 0..ROWS {
-        for col in 0..COLUMNS {
-            let index = col * ROWS + row;
-            if(arr[index]){
-                print!("1");
-            }
-            else{
-                print!("0");
-            }
-        }
-        println!();
-    }
-    let _ = io::stdout().flush();
-}
-fn emulate_display(buffer: &[u8]) {
-
+fn write_to_fb(buffer: &[u8])->Box::<Vec<u32>> {
+    let mut fb = Vec::<u32>::new();
     for page in 0..8 {
         for bit_row in 0..8 {
-            let mut row_string = String::with_capacity(128);
-
             for col in 0..128 {
                 let index = (page * 128) + col;
                 let byte = buffer[index];
-
                 if (byte >> bit_row) & 1 == 1 {
-                    row_string.push('@');
+                    fb.push(0xFFFFFFFF)
                 } else {
-                    row_string.push(' ');
+                    fb.push(0)
                 }
             }
-            println!("{}", row_string);
         }
     }
+    Box::new(fb)
 }
 
 fn main() -> std::io::Result<()> {
@@ -117,26 +99,28 @@ fn main() -> std::io::Result<()> {
 
 
     let mut screen = vec![false; ROWS * COLUMNS];//also transfer to heap
-
+    let mut window = Window::new("Test", COLUMNS, ROWS, WindowOptions::default()).unwrap();
     space.push(Shape {
         shape_type: ShapeType::Circle(0.1),
         position: vec2(0.5, 0.5), // centered
     });
 
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .open("oled_output.txt")?;
+    //let mut file = OpenOptions::new()
+    //    .write(true)
+    //    .create(true)
+    //    .open("oled_output.txt")?;
 
     loop {
+        //file.rewind()?;
         clear(&mut screen);
         render(&space, &mut screen);
 
 
         let packed_data = pack_bits_to_bytes(&screen);
-        emulate_display(packed_data.as_slice());
-        file.write_all(&packed_data)?;
-        file.flush()?;
+        let fb =write_to_fb(packed_data.as_slice());
+        window.update_with_buffer(fb.as_ref(),COLUMNS,ROWS).unwrap();
+        //file.write_all(&packed_data)?;
+        //file.flush()?;
         thread::sleep(Duration::from_millis(1000));
 
     }
