@@ -33,7 +33,8 @@ impl Shape {
 
 
 fn write_pixel(arr: &mut [bool], x: usize, y: usize) {
-    arr[y  + x*ROWS] = true;
+    let page = y/8;
+    arr[(page*1024)+(8*x)+(y-8*page)]=true;
 }
 
 fn render(space: &Vec<Shape>, arr: &mut [bool]) {
@@ -90,12 +91,32 @@ fn printArr(arr: &[bool]) {
     }
     let _ = io::stdout().flush();
 }
+fn emulate_display(buffer: &[u8]) {
+
+    for page in 0..8 {
+        for bit_row in 0..8 {
+            let mut row_string = String::with_capacity(128);
+
+            for col in 0..128 {
+                let index = (page * 128) + col;
+                let byte = buffer[index];
+
+                if (byte >> bit_row) & 1 == 1 {
+                    row_string.push('@');
+                } else {
+                    row_string.push(' ');
+                }
+            }
+            println!("{}", row_string);
+        }
+    }
+}
 
 fn main() -> std::io::Result<()> {
-    let mut space = Vec::<Shape>::new();
+    let mut space = Vec::<Shape>::new();//transfer to heap
 
 
-    let mut screen = vec![false; ROWS * COLUMNS];
+    let mut screen = vec![false; ROWS * COLUMNS];//also transfer to heap
 
     space.push(Shape {
         shape_type: ShapeType::Circle(0.1),
@@ -105,16 +126,15 @@ fn main() -> std::io::Result<()> {
     let mut file = OpenOptions::new()
         .write(true)
         .create(true)
-        .truncate(true)
         .open("oled_output.txt")?;
 
     loop {
-        file.rewind()?;
         clear(&mut screen);
         render(&space, &mut screen);
-        printArr(&mut screen);
+
 
         let packed_data = pack_bits_to_bytes(&screen);
+        emulate_display(packed_data.as_slice());
         file.write_all(&packed_data)?;
         file.flush()?;
         thread::sleep(Duration::from_millis(1000));
