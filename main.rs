@@ -20,11 +20,9 @@ struct Shape {
 }
 
 impl Shape {
-  
-    fn sdf(&self, pixel: Vec2) -> f32 {
+    fn sdf(&self, pixel: Vec2) -> f32 {//just use traits gng
         match self.shape_type {
             ShapeType::Circle(radius) => (self.position - pixel).length() - radius,
-            
         }
     }
 }
@@ -58,11 +56,9 @@ fn clear(arr: &mut [bool]) {
 fn pack_bits_to_bytes(grid: &[bool]) -> Vec<u8> {
     grid.chunks(8)
         .map(|chunk| {
-            let mut byte = 0u8;
+            let mut byte:u8 = 0;
             for (i, &bit) in chunk.iter().enumerate() {
-                if bit {
-                    byte |= 1 << i;
-                }
+                byte |= (bit as u8)<<i
             }
             byte
         })
@@ -74,27 +70,23 @@ use std::io::{self, Write};
 fn printArr(arr: &[bool]) {
     for rows in 0..ROWS {
         for columns in 0..COLUMNS {
-            
             let index = rows * COLUMNS + columns;
-            
             if arr[index] {
                 print!("1");
             } else {
-                print!("0"); 
+                print!("0");
             }
         }
-       
-        println!(); 
+        println!();
     }
-   
     let _ = io::stdout().flush();
 }
 
 fn main() -> std::io::Result<()> {
-    let mut space = Vec::<Shape>::new();
+    let mut space = Vec::<Shape>::new();//transfer this to be saved on the heap; might bloat the stack in later use
     
     
-    let mut screen = vec![false; ROWS * COLUMNS];
+    let mut screen = vec![false; ROWS * COLUMNS];//also transfer to heap
 
     space.push(Shape {
         shape_type: ShapeType::Circle(10.0),
