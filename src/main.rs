@@ -4,17 +4,18 @@ use std::io::prelude::*;
 use std::thread;
 use std::time::Duration;
 use std::io::{self, Write};
-
-
+use minifb::{Window, WindowOptions};
+const DEVICE_FILE_PATH: &str ="oled_output.txt";//todo change to /dev/oled
 const ROWS: usize = 64;
 const COLUMNS: usize = 128;
 const ASPECT_RATIO: usize = 2;
 
-struct FileHandler {
+struct ScreenBuffer {
     screen: Vec<bool>,
 }
-impl FileHandler {
+impl ScreenBuffer {
     fn new() -> Self {
+
         Self {
             screen: vec![false; ROWS * COLUMNS],
         }
@@ -33,21 +34,24 @@ impl FileHandler {
         }
     }
 
-    fn print_arr(&self) {
-        for row in 0..ROWS {
-            for col in 0..COLUMNS {
-                let page=row/8;
-                let index = (page * 1024) + (8 * col) + (row - 8 * page);
-                if(self.screen[index]){
-                    print!("1");
+    fn buf_to_window_vec(buffer: &[u8]) -> Box<Vec<u32>>{
+        let mut display_buffer = Vec::<u32>::new();
+        for page in 0..8 {
+            for bit_row in 0..8 {
+                for col in 0..128 {
+                    let index = (page * 128) + col;
+                    let byte = buffer[index];
+                    if (byte >> bit_row) & 1 == 1 {
+                        display_buffer.push(0xFFFFFFFF)
+                    } else {
+                        display_buffer.push(0x0);
+                    }
                 }
-                else{
-                    print!("0");
-                }
+
             }
-            println!();
         }
-        let _ = io::stdout().flush();
+        Box::new(display_buffer)
+
     }
 
     fn pack_bits_to_bytes(&self) -> Vec<u8> {
@@ -138,7 +142,7 @@ impl Space{
                 );
                 for shape in self.space.iter() {
                     if shape.sdf(uv) < 0.0 {
-                        FileHandler::write_pixel_generic(arr, col, row);
+                        ScreenBuffer::write_pixel_generic(arr, col, row);
                         break;
                     }
                 }
@@ -153,14 +157,13 @@ impl Space{
 
 fn main() -> std::io::Result<()> {
 
-    let mut space = Space::new();
+    let mut space = Space::new();//todo transfer to heap
 
-    let mut filehandler = FileHandler::new();
+    let mut screen = ScreenBuffer::new();//todo transfer to heap
+    let mut window = Window::new("oled_emulator", COLUMNS, ROWS, WindowOptions::default()).unwrap();
 
-
-
-    space.add(Shape {
-        shape_type: ShapeType::Circle(0.1),
+    space.add(Shape {//todo move these space.add calls to a seperate function! this is bloating main
+        shape_type: ShapeType::Circle(0.2),
         position: vec2(0.5, 0.5), // centered
     });
 
@@ -168,29 +171,31 @@ fn main() -> std::io::Result<()> {
         shape_type: ShapeType::Triangle(vec2(0.7,0.8),vec2(0.8,0.9),vec2(0.6,0.8)),
         position: vec2(0.5, 0.5), // centered
     });
-
-    let mut file = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open("oled_output.txt")?;
+//todo file operations commented out for now , use window to emulate/debug
+//     let mut file = OpenOptions::new()
+//         .write(true)
+//         .create(true)
+//         .truncate(true)
+//         .open(DEVICE_FILE_PATH)?;//do not change!
 
     let mut r=0.05;
     let mut delta=0.05;
-//s
     loop {
         if(r>0.5||r<0.05){
             delta*=-1.0;
         }
         r+=delta;
-        file.rewind()?;
-        filehandler.clear();
-        space.render( &mut filehandler.screen);
-        filehandler.print_arr();
+        screen.clear();
+        space.render(&mut screen.screen);
 
-        let packed_data = filehandler.pack_bits_to_bytes();
-        file.write_all(&packed_data)?;
-        file.flush()?;
+
+        let packed_data = screen.pack_bits_to_bytes();
+
+        let window_buffer = ScreenBuffer::buf_to_window_vec(packed_data.as_slice());
+        window.update_with_buffer(window_buffer.as_ref(), COLUMNS, ROWS).unwrap();
+
+        // file.write_all(&packed_data)?;
+        // file.flush()?;
         thread::sleep(Duration::from_millis(1000));
 
     }
