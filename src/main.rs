@@ -125,7 +125,7 @@ impl Space{
         self.space[index as usize] = shape;
     }
 
-    fn remove(&mut self, shape: Shape,index:i32) {
+    fn remove(&mut self,index:i32) {
         self.space.remove(index as usize);
     }
 
@@ -177,7 +177,7 @@ fn main() -> std::io::Result<()> {
 
     let mut r=0.05;
     let mut delta=0.05;
-
+//s
     loop {
         if(r>0.5||r<0.05){
             delta*=-1.0;
