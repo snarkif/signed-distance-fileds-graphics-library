@@ -16,8 +16,8 @@ impl Space{
         return  self.space.len() as i32;
     }
 
-    pub fn update(&mut self, index:i32, shape: shape::Shape){
-        self.space[index as usize] = shape;
+    pub fn borrow(&mut self, index:i32)->&mut shape::Shape{
+        &mut self.space[index as usize] 
     }
 
     pub fn remove(&mut self,index:i32) {
