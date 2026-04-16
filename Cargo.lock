@@ -481,6 +481,7 @@ version = "0.1.0"
 dependencies = [
  "glam",
  "minifb",
+ "trig",
 ]
 
 [[package]]
@@ -621,6 +622,12 @@ dependencies = [
  "rustix",
  "windows-sys",
 ]
+
+[[package]]
+name = "trig"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcebce5982c2b16656a085819d3e6389a9239cf936c222b44b8431238fcb9f20"
 
 [[package]]
 name = "unicode-ident"

@@ -12,6 +12,7 @@ const ASPECT_RATIO: usize = 2;
 
 mod two_d;
 mod shared;
+mod three_d;
 
 use shared::screen_buffer;
 use two_d::shape::*;
@@ -35,7 +36,7 @@ fn add_stuff(space: &mut space::Space)->Vec<i32>{
 
 
 fn main() -> std::io::Result<()> {
-
+//2D TESTING
     let mut space = space::Space::new();//todo transfer to heap//vectors are stored in the heap corny ahh
 
     let shape_handles=add_stuff(&mut space);

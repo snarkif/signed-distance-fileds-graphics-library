@@ -10,3 +10,4 @@ edition = "2021"
 # glam is a linear algebra library that provides the Vec2 type
 glam = "0.29"
 minifb = "0.28.0"
+trig = "0.4.0"
