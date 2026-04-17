@@ -4,18 +4,29 @@ use crate::three_d::{ray,shapes};
 use crate::three_d::shapes::*;
 use crate::three_d::ray::*;
 
+
 const MAX_DISTANCE: f32 =1500.0;
 const ROWS: usize = 64;
 const COLUMNS: usize = 128;
 const ALPHA: f32 = 0.01;
-struct Space {
-    space: Vec<shapes::Sphere>,
+pub(crate) struct Space {
+    space: Vec<Shape>,
 }
 impl Space{
-    fn new() -> Space {
-        Space {
-            space: Vec::new(),
-        }
+    pub fn new() -> Self {
+        Self{space: Vec::new()}
+    }
+    pub fn add(&mut self, shape: Shape)->i32 {
+        self.space.push(shape);
+        self.space.len() as i32//this functions as a handle
+    }
+
+    pub fn borrow(&mut self, index:i32)->&mut Shape{
+        &mut self.space[index as usize]
+    }
+
+    pub fn remove(&mut self,index:i32) {
+        self.space.remove(index as usize);
     }
     fn march(&self,ray: &ray::Ray)->bool{
         let mut position =vec3(ray.origin.x, ray.origin.y, ray.origin.z);
@@ -40,13 +51,13 @@ impl Space{
         }
         false
     }
-    fn render(&self,arr:&mut [bool]){
+    pub(crate) fn render(&self, arr:&mut [bool]){
 
         for row in 0..ROWS {
             for col in 0..COLUMNS {
-                let ray=Ray::create_ray(vec2(row as f32,col as f32));
+                let ray=Ray::create_ray(vec2(col as f32,row as f32));
                 if(self.march(&ray)){
-                    screen_buffer.write_pixel_generic(arr,row,col);
+                    screen_buffer::ScreenBuffer::write_pixel_generic(arr, col, row);
                 }
             }
         }

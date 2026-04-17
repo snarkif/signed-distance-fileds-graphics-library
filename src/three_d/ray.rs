@@ -16,10 +16,11 @@ impl Ray {
         let forward = Vec3::new(0.0, 0.0, 1.0 / (FOV / 2.0).tan());
         let up = Vec3::new(0.0,1.0,0.0);
         let right = Vec3::new(1.0,0.0,0.0);
-        let uv = vec2(
+        let mut uv = vec2(
             pixel.x / COLUMNS as f32,
             pixel.y / ROWS as f32,
         ) * 2.0 - 1.0;
+       uv.x*=2.0;
         Ray {
             origin: vec3(0.0,0.0,0.0),
             direction: (forward+right*uv.x+up*uv.y).normalize(),
