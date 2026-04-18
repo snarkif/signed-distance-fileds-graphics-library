@@ -28,6 +28,12 @@ fn add_stuff_3d(space: &mut three_d::space::Space) ->Vec<i32>{
     shape_handles.push(space.add(
         Shape::new(ShapeType::BoxFrame(BoxFrame::new(vec3(0.0,0.0,1.0),vec3(0.5,0.5,0.5),0.02)))
     ));
+    shape_handles.push(space.add(
+        Shape::new(ShapeType::Sphere(Sphere::new(vec3(0.0,0.0,1.0),0.5)))
+    ));
+
+
+
     shape_handles
 
 
@@ -36,6 +42,7 @@ fn add_stuff_3d(space: &mut three_d::space::Space) ->Vec<i32>{
 fn main() -> std::io::Result<()> {
 //2D TESTING
     let mut space = Space::new();
+
 
     let shape_handles=add_stuff_3d(&mut space);
 
@@ -52,11 +59,7 @@ fn main() -> std::io::Result<()> {
 
 
     loop {
-
-
-
-
-
+        space.camera.do_both();
         screen.clear();
         space.render(&mut screen.screen);
 

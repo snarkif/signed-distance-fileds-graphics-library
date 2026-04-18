@@ -1,6 +1,7 @@
 use glam::{vec2, vec3};
 use crate::shared::{screen_buffer};
 use crate::three_d::{ray,shapes};
+use crate::three_d::camera::Camera;
 use crate::three_d::shapes::*;
 use crate::three_d::ray::*;
 
@@ -11,10 +12,11 @@ const COLUMNS: usize = 128;
 const ALPHA: f32 = 0.01;
 pub(crate) struct Space {
     space: Vec<Shape>,
+    pub(crate) camera: Camera,
 }
 impl Space{
     pub fn new() -> Self {
-        Self{space: Vec::new()}
+        Self{space: Vec::new(),camera: Camera::new(vec3(0.0,3.0,0.0))}
     }
     pub fn add(&mut self, shape: Shape)->i32 {
         self.space.push(shape);
@@ -28,7 +30,7 @@ impl Space{
     pub fn remove(&mut self,index:i32) {
         self.space.remove(index as usize);
     }
-    fn march(&self,ray: &ray::Ray)->bool{
+    fn march(&self,ray: Ray)->bool{
         let mut position =vec3(ray.origin.x, ray.origin.y, ray.origin.z);
         let mut min =MAX_DISTANCE;
         let mut distance_traveled =0.0;
@@ -55,8 +57,8 @@ impl Space{
 
         for row in 0..ROWS {
             for col in 0..COLUMNS {
-                let ray=Ray::create_ray(vec2(col as f32,row as f32));
-                if(self.march(&ray)){
+                let ray=self.camera.create_ray(vec2(col as f32,row as f32));
+                if(self.march(ray)){
                     screen_buffer::ScreenBuffer::write_pixel_generic(arr, col, row);
                 }
             }
