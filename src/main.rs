@@ -71,7 +71,7 @@ fn main() -> std::io::Result<()> {
 
         // file.write_all(&packed_data)?;
         // file.flush()?;
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(10));
 
     }
 
