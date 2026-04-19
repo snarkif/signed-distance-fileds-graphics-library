@@ -1,21 +1,21 @@
 use std::ops::Mul;
-use glam::{vec2, vec3, Vec2, Vec3};
+use glam::{vec2, vec3, Vec2, Vec3,Quat};
 use crate::{COLUMNS, ROWS};
 use crate::three_d::ray::Ray;
+use crate::shared::mouse;
 const FOV: f32 =90.0;
 pub struct Camera {
     pub position: Vec3,
     pub forward: Vec3,      // where it is looking at
     pub up: Vec3,          // world up (0,1,0)
-    delta_x: f32//temporary, for the proof of concept
+
 }
 
 impl Camera {
     pub(crate) fn new(position: Vec3 ) -> Camera {
-        Self{position, forward: vec3(0.0,0.0,0.0)-position, up: vec3(1.0,1.0,0.0),delta_x:0.5}
+        Self{position, forward: vec3(0.0,0.0,0.0)-position, up: vec3(1.0,1.0,0.0)}
     }
     pub fn create_ray(&self, pixel: Vec2) -> Ray {
-        // build camera axes from look direction
         let forward = self.forward.mul(1.0 / (FOV / 2.0).tan());
         let right = forward.cross(self.up).normalize();
         let up = right.cross(forward).normalize();
@@ -40,12 +40,24 @@ impl Camera {
         self.forward=vec3(0.0,0.0,0.0)-self.position;
     }
 
-    pub(crate) fn do_both(&mut self){//moves the camera around
-        if self.position.x.abs()>=3.0{
-            self.delta_x*=-1.0;
 
-        }
-        self.update_position(vec3(self.delta_x,0.0,0.0));
-        self.target_middle();
+    pub fn rotate_horizontaly(&mut self, mut angle: f32) {
+        angle=angle.to_radians();
+        let right = self.forward.cross(self.up).normalize().mul(-1.0);
+        let axis = right.cross(self.forward).normalize();//the local up vector
+        let q = Quat::from_axis_angle(axis,angle);
+        self.forward=q*self.forward;
+    }
+    pub fn rotate_verticaly(&mut self, mut angle: f32) {
+        angle=angle.to_radians();
+        let axis = self.forward.cross(self.up).normalize();
+        let q = Quat::from_axis_angle(axis,angle);
+        self.forward=q*self.forward;
+    }
+    pub fn rotate_with_mouse(&mut self, mouse: &mut mouse::Mouse) {
+        let delta=mouse.get_delta();
+        self.rotate_horizontaly(delta.x /50.0);
+
+        self.rotate_verticaly(delta.y /50.0);
     }
 }

@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 # glam is a linear algebra library that provides the Vec2 type
+device_query = "2.0.0"
 glam = "0.29"
 minifb = "0.28.0"
 trig = "0.4.0"

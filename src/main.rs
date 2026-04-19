@@ -17,6 +17,7 @@ mod shared;
 mod three_d;
 
 use shared::screen_buffer;
+use shared::mouse;
 //use two_d::shape::*;
 //use two_d::space;
 use three_d::space::*;
@@ -42,8 +43,7 @@ fn add_stuff_3d(space: &mut three_d::space::Space) ->Vec<i32>{
 fn main() -> std::io::Result<()> {
 //2D TESTING
     let mut space = Space::new();
-
-
+    let mut mouse =mouse::Mouse::new();
     let shape_handles=add_stuff_3d(&mut space);
 
     let mut screen = screen_buffer::ScreenBuffer::new();//todo transfer to heap
@@ -59,7 +59,7 @@ fn main() -> std::io::Result<()> {
 
 
     loop {
-        space.camera.do_both();
+        space.camera.rotate_with_mouse(&mut mouse);
         screen.clear();
         space.render(&mut screen.screen);
 
