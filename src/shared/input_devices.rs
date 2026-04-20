@@ -1,12 +1,12 @@
 use device_query::{DeviceQuery, DeviceState, MouseState, Keycode};
 use glam::{Vec2, Vec3};
 
-pub struct Mouse{
+pub struct Devices{
     last_position: (f32,f32),
     device_state: DeviceState,
 }
-impl Mouse{
-    pub(crate) fn new() -> Mouse {
+impl Devices{
+    pub(crate) fn new() -> Devices {
         Self{last_position: (0.0, 0.0), device_state: DeviceState::new()}
     }
     pub fn get_delta(&mut self) -> Vec2{
@@ -20,4 +20,8 @@ impl Mouse{
         }
         Vec2::new(delta_x, delta_y)
     }
+    pub fn keyboard_liten(&mut self)->Vec<Keycode>{
+        self.device_state.get_keys()
+    }
+    
 }
